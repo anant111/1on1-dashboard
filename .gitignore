@@ -1,0 +1,7 @@
+*.json.bak
+__pycache__/
+*.pyc
+.env
+venv/
+gsheet_cred.json
+.DS_Store
