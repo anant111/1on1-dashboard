@@ -10,9 +10,10 @@
     body { background: #0f1117; color: #e2e8f0; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; display: flex; height: 100vh; overflow: hidden; }
 
     /* ── Sidebar ── */
-    #sidebar { width: 216px; min-width: 216px; background: #1a1d27; display: flex; flex-direction: column; border-right: 1px solid #2d3148; }
+    #sidebar { width: 216px; min-width: 216px; background: #1a1d27; display: flex; flex-direction: column; border-right: 1px solid #2d3148; overflow-y: auto; }
     .sidebar-logo { padding: 24px 20px 20px; font-size: 17px; font-weight: 700; color: #6366f1; border-bottom: 1px solid #2d3148; letter-spacing: 0.02em; }
     .nav-section { padding: 12px 0 8px; border-bottom: 1px solid #2d3148; }
+    .ctrl-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: #475569; margin-bottom: 8px; }
     .nav-label { padding: 0 20px 6px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: #475569; }
     .nav-item { display: block; padding: 9px 20px; cursor: pointer; font-size: 13px; color: #94a3b8; border-left: 3px solid transparent; user-select: none; transition: background 0.15s, color 0.15s; }
     .nav-item:hover { color: #e2e8f0; background: #1e2130; }
@@ -20,18 +21,26 @@
 
     /* ── Granularity ── */
     .gran-wrap { padding: 14px 20px 12px; border-bottom: 1px solid #2d3148; }
-    .ctrl-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: #475569; margin-bottom: 8px; }
     .gran-btns { display: flex; gap: 5px; }
     .gran-btn { flex: 1; padding: 5px 0; font-size: 11px; font-weight: 600; background: #23273a; border: 1px solid #2d3148; color: #64748b; cursor: pointer; border-radius: 6px; transition: background 0.15s, color 0.15s; }
     .gran-btn:hover { background: #2d3148; color: #e2e8f0; }
     .gran-btn.active { background: #6366f1; border-color: #6366f1; color: #fff; }
 
     /* ── Date Range ── */
-    .range-wrap { padding: 14px 20px 12px; border-bottom: 1px solid #2d3148; }
+    .range-wrap { padding: 14px 20px 14px; border-bottom: 1px solid #2d3148; }
     .range-btns { display: flex; flex-wrap: wrap; gap: 5px; }
     .range-btn { padding: 4px 9px; font-size: 10.5px; font-weight: 600; background: #23273a; border: 1px solid #2d3148; color: #64748b; cursor: pointer; border-radius: 5px; transition: background 0.15s, color 0.15s; }
     .range-btn:hover { background: #2d3148; color: #e2e8f0; }
     .range-btn.active { background: #312e81; border-color: #6366f1; color: #a5b4fc; }
+
+    /* ── Custom date picker ── */
+    .custom-picker { display: none; margin-top: 10px; }
+    .custom-picker.visible { display: block; }
+    .date-input { width: 100%; padding: 5px 8px; font-size: 11px; background: #23273a; border: 1px solid #2d3148; color: #e2e8f0; border-radius: 5px; color-scheme: dark; outline: none; }
+    .date-input:focus { border-color: #6366f1; }
+    .date-sep { font-size: 10px; color: #475569; display: block; text-align: center; margin: 4px 0; }
+    .apply-btn { width: 100%; padding: 6px 0; font-size: 11px; font-weight: 600; background: #6366f1; border: none; color: #fff; cursor: pointer; border-radius: 5px; margin-top: 8px; transition: background 0.15s; }
+    .apply-btn:hover { background: #4f46e5; }
 
     .last-updated { margin-top: auto; padding: 14px 20px; font-size: 11px; color: #475569; }
 
@@ -39,10 +48,11 @@
     #main { flex: 1; overflow-y: auto; padding: 28px 32px; }
     .section { display: none; }
     .section.active { display: block; }
-    .section-title { font-size: 20px; font-weight: 700; margin-bottom: 20px; color: #e2e8f0; }
-
-    /* ── KPI cards ── */
-    .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+    .section-header { display: flex; align-items: baseline; gap: 14px; margin-bottom: 6px; }
+    .section-title { font-size: 20px; font-weight: 700; color: #e2e8f0; }
+    .period-badge { font-size: 12px; color: #64748b; background: #1e2130; border: 1px solid #2d3148; border-radius: 5px; padding: 3px 9px; font-weight: 500; white-space: nowrap; }
+    .kpi-area { margin-bottom: 20px; }
+    .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 14px; }
     .kpi-grid-5 { grid-template-columns: repeat(5, 1fr); }
     .kpi-card { background: #1a1d27; border: 1px solid #2d3148; border-radius: 10px; padding: 18px 20px; }
     .kpi-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: #64748b; margin-bottom: 6px; }
@@ -76,6 +86,12 @@
     <div class="range-wrap">
       <div class="ctrl-label">Date Range</div>
       <div class="range-btns" id="range-btns"></div>
+      <div class="custom-picker" id="custom-picker">
+        <input type="date" id="date-from" class="date-input">
+        <span class="date-sep">to</span>
+        <input type="date" id="date-to" class="date-input">
+        <button class="apply-btn" id="apply-custom">Apply</button>
+      </div>
     </div>
     <div class="last-updated" id="last-updated">—</div>
   </div>
@@ -83,8 +99,11 @@
   <div id="main">
     <!-- Overview -->
     <div class="section active" id="section-overall">
-      <div class="section-title">Overview</div>
-      <div class="kpi-grid" id="kpi-overall"></div>
+      <div class="section-header">
+        <div class="section-title">Overview</div>
+        <div class="period-badge" id="period-overall"></div>
+      </div>
+      <div class="kpi-area"><div class="kpi-grid" id="kpi-overall"></div></div>
       <div class="charts-row">
         <div class="chart-card"><div class="chart-title">Revenue Over Time</div><canvas id="chart-overall-revenue"></canvas></div>
         <div class="chart-card"><div class="chart-title">New vs Repeat</div><canvas id="chart-overall-donut"></canvas></div>
@@ -94,8 +113,11 @@
 
     <!-- Web -->
     <div class="section" id="section-web">
-      <div class="section-title">Web</div>
-      <div class="kpi-grid" id="kpi-web"></div>
+      <div class="section-header">
+        <div class="section-title">Web</div>
+        <div class="period-badge" id="period-web"></div>
+      </div>
+      <div class="kpi-area"><div class="kpi-grid" id="kpi-web"></div></div>
       <div class="charts-row">
         <div class="chart-card"><div class="chart-title">Revenue Over Time</div><canvas id="chart-web-revenue"></canvas></div>
         <div class="chart-card"><div class="chart-title">New vs Repeat</div><canvas id="chart-web-donut"></canvas></div>
@@ -105,8 +127,11 @@
 
     <!-- iOS -->
     <div class="section" id="section-ios">
-      <div class="section-title">iOS</div>
-      <div class="kpi-grid" id="kpi-ios"></div>
+      <div class="section-header">
+        <div class="section-title">iOS</div>
+        <div class="period-badge" id="period-ios"></div>
+      </div>
+      <div class="kpi-area"><div class="kpi-grid" id="kpi-ios"></div></div>
       <div class="charts-row">
         <div class="chart-card"><div class="chart-title">Revenue Over Time</div><canvas id="chart-ios-revenue"></canvas></div>
         <div class="chart-card"><div class="chart-title">New vs Repeat</div><canvas id="chart-ios-donut"></canvas></div>
@@ -116,8 +141,11 @@
 
     <!-- Android -->
     <div class="section" id="section-android">
-      <div class="section-title">Android</div>
-      <div class="kpi-grid" id="kpi-android"></div>
+      <div class="section-header">
+        <div class="section-title">Android</div>
+        <div class="period-badge" id="period-android"></div>
+      </div>
+      <div class="kpi-area"><div class="kpi-grid" id="kpi-android"></div></div>
       <div class="charts-row">
         <div class="chart-card"><div class="chart-title">Revenue Over Time</div><canvas id="chart-android-revenue"></canvas></div>
         <div class="chart-card"><div class="chart-title">New vs Repeat</div><canvas id="chart-android-donut"></canvas></div>
@@ -127,8 +155,11 @@
 
     <!-- Platform -->
     <div class="section" id="section-platform">
-      <div class="section-title">Platform Breakdown</div>
-      <div class="kpi-grid kpi-grid-5" id="kpi-platform"></div>
+      <div class="section-header">
+        <div class="section-title">Platform Breakdown</div>
+        <div class="period-badge" id="period-platform"></div>
+      </div>
+      <div class="kpi-area"><div class="kpi-grid kpi-grid-5" id="kpi-platform"></div></div>
       <div class="charts-row">
         <div class="chart-card"><div class="chart-title">Payments by Platform</div><canvas id="chart-platform-payments"></canvas></div>
         <div class="chart-card"><div class="chart-title">Platform Share</div><canvas id="chart-platform-donut"></canvas></div>
@@ -141,18 +172,20 @@
   // ── State ──
   let DATA = null;
   let currentGran = 'daily';
-  let currentRange = 15;
+  let currentRange = 15;   // -1 = custom
+  let customFrom = '';
+  let customTo   = '';
   const CHARTS = {};
 
-  // ── Range options per granularity ──
+  // ── Range options per granularity (n=-1 → custom picker) ──
   const RANGE_OPTIONS = {
-    daily:   [{ n: 7, label: '7d' }, { n: 15, label: '15d' }, { n: 30, label: '30d' }, { n: 90, label: '90d' }, { n: 0, label: 'All' }],
-    weekly:  [{ n: 4, label: '4w' }, { n: 6, label: '6w' }, { n: 12, label: '12w' }, { n: 0, label: 'All' }],
-    monthly: [{ n: 3, label: '3m' }, { n: 6, label: '6m' }, { n: 12, label: '12m' }, { n: 0, label: 'All' }],
+    daily:   [{ n: 7, label: '7d' }, { n: 15, label: '15d' }, { n: 30, label: '30d' }, { n: 90, label: '90d' }, { n: 0, label: 'All' }, { n: -1, label: 'Custom' }],
+    weekly:  [{ n: 4, label: '4w' }, { n: 6, label: '6w' }, { n: 12, label: '12w' }, { n: 0, label: 'All' }, { n: -1, label: 'Custom' }],
+    monthly: [{ n: 3, label: '3m' }, { n: 6, label: '6m' }, { n: 12, label: '12m' }, { n: 0, label: 'All' }, { n: -1, label: 'Custom' }],
   };
   const DEFAULT_RANGES = { daily: 15, weekly: 6, monthly: 3 };
 
-  // ── Colour palette (rail-strategy style) ──
+  // ── Colour palette ──
   const C = {
     new:     '#6366f1',
     repeat:  '#a78bfa',
@@ -169,28 +202,81 @@
   }
   function fmtPct(v) { return (v || 0).toFixed(1) + '%'; }
   function fmtNum(v) { return Math.round(v || 0).toLocaleString('en-IN'); }
+  function fmtDate(iso) {
+    const d = new Date(iso + 'T00:00:00');
+    return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+
+  // ── Period badge ──
+  function updatePeriodBadge(tab, rows) {
+    const el = document.getElementById('period-' + tab);
+    if (!el || !rows || !rows.length) return;
+    const from = rows[0].date;
+    const to   = rows[rows.length - 1].date;
+    el.textContent = from === to ? fmtDate(from) : fmtDate(from) + ' – ' + fmtDate(to);
+  }
 
   // ── Range selector ──
   function buildRangeButtons() {
     const wrap = document.getElementById('range-btns');
+    const picker = document.getElementById('custom-picker');
     const options = RANGE_OPTIONS[currentGran];
     wrap.innerHTML = options.map(({ n, label }) =>
       `<button class="range-btn${n === currentRange ? ' active' : ''}" data-range="${n}">${label}</button>`
     ).join('');
     wrap.querySelectorAll('.range-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        currentRange = parseInt(btn.dataset.range);
+        const n = parseInt(btn.dataset.range);
         wrap.querySelectorAll('.range-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        const activeTab = document.querySelector('.nav-item.active').dataset.section;
-        if (DATA) renderSection(activeTab, currentGran);
+        if (n === -1) {
+          // Show custom picker; pre-fill dates from current data range
+          picker.classList.add('visible');
+          if (DATA) {
+            const rows = DATA[document.querySelector('.nav-item.active').dataset.section][currentGran];
+            if (rows && rows.length) {
+              if (!customFrom) document.getElementById('date-from').value = rows[Math.max(0, rows.length - 30)].date;
+              else document.getElementById('date-from').value = customFrom;
+              if (!customTo) document.getElementById('date-to').value = rows[rows.length - 1].date;
+              else document.getElementById('date-to').value = customTo;
+            }
+          }
+          currentRange = -1;
+          // Don't re-render until Apply is clicked
+        } else {
+          picker.classList.remove('visible');
+          currentRange = n;
+          const activeTab = document.querySelector('.nav-item.active').dataset.section;
+          if (DATA) renderSection(activeTab, currentGran);
+        }
       });
     });
+    // Show/hide picker based on current state
+    if (currentRange === -1) picker.classList.add('visible');
+    else picker.classList.remove('visible');
   }
 
+  // Apply custom date range
+  document.getElementById('apply-custom').addEventListener('click', () => {
+    customFrom = document.getElementById('date-from').value;
+    customTo   = document.getElementById('date-to').value;
+    if (!customFrom && !customTo) return;
+    currentRange = -1;
+    const activeTab = document.querySelector('.nav-item.active').dataset.section;
+    if (DATA) renderSection(activeTab, currentGran);
+  });
+
+  // ── Row filtering ──
   function getRows(tab, gran) {
     const rows = DATA[tab][gran];
     if (!rows || !rows.length) return rows;
+    if (currentRange === -1) {
+      return rows.filter(r => {
+        if (customFrom && r.date < customFrom) return false;
+        if (customTo   && r.date > customTo)   return false;
+        return true;
+      });
+    }
     return currentRange === 0 ? rows : rows.slice(-currentRange);
   }
 
@@ -229,7 +315,6 @@
   function destroyChart(id) {
     if (CHARTS[id]) { CHARTS[id].destroy(); delete CHARTS[id]; }
   }
-
   function makeChart(id, config) {
     destroyChart(id);
     CHARTS[id] = new Chart(document.getElementById(id).getContext('2d'), config);
@@ -320,6 +405,7 @@
   // ── Section render ──
   function renderSection(tab, gran) {
     const rows = getRows(tab, gran);
+    updatePeriodBadge(tab, rows);
     renderKpi(tab, gran);
     if (tab === 'platform') {
       renderPlatformCharts(rows);
@@ -355,7 +441,7 @@
     });
   });
 
-  // ── Init range buttons ──
+  // ── Init ──
   buildRangeButtons();
 
   // ── Load data ──
