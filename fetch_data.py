@@ -212,20 +212,17 @@ def read_sheet(gc, sheet_name):
 def git_push(repo_dir):
     today = date.today().isoformat()
     subprocess.run(['git', 'add', 'data.json'], cwd=repo_dir, check=True)
-    result = subprocess.run(
+    # Check if there's actually anything staged to commit
+    diff = subprocess.run(['git', 'diff', '--cached', '--quiet'], cwd=repo_dir)
+    if diff.returncode == 0:
+        print("data.json unchanged, nothing to commit")
+        return
+    subprocess.run(
         ['git', 'commit', '-m', f'Update dashboard data {today}'],
-        cwd=repo_dir, capture_output=True, text=True
+        cwd=repo_dir, check=True
     )
-    if result.returncode != 0:
-        if 'nothing to commit' in result.stdout + result.stderr:
-            print("data.json unchanged, nothing to commit")
-            return
-        raise subprocess.CalledProcessError(result.returncode, 'git commit')
-    push_result = subprocess.run(['git', 'push'], cwd=repo_dir, capture_output=True, text=True)
-    if push_result.returncode != 0:
-        print(f"Warning: git push failed (remote may not be configured yet): {push_result.stderr.strip()}")
-    else:
-        print("Pushed to GitHub")
+    subprocess.run(['git', 'push'], cwd=repo_dir, check=True)
+    print("Pushed to GitHub")
 
 
 def main():
