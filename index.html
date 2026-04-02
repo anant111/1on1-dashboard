@@ -56,7 +56,11 @@
     .kpi-grid-5 { grid-template-columns: repeat(5, 1fr); }
     .kpi-card { background: #1a1d27; border: 1px solid #2d3148; border-radius: 10px; padding: 18px 20px; }
     .kpi-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: #64748b; margin-bottom: 6px; }
-    .kpi-value { font-size: 24px; font-weight: 700; color: #e2e8f0; }
+    .kpi-value { font-size: 24px; font-weight: 700; color: #e2e8f0; margin-bottom: 4px; }
+    .kpi-delta { font-size: 11px; font-weight: 500; }
+    .kpi-delta.pos { color: #4ade80; }
+    .kpi-delta.neg { color: #f87171; }
+    .kpi-delta.neu { color: #475569; }
 
     /* ── Chart layout ── */
     .charts-row { display: grid; grid-template-columns: 2fr 1fr; gap: 12px; margin-bottom: 12px; }
@@ -280,42 +284,67 @@
     return currentRange === 0 ? rows : rows.slice(-currentRange);
   }
 
-  // ── KPI cards — aggregate the full selected range ──
+  // ── Previous-period rows (same count, immediately before current window) ──
+  function getPrevRows(tab, gran) {
+    if (currentRange === 0) return [];       // "All" — no prior period
+    const all  = DATA[tab][gran];
+    const curr = getRows(tab, gran);
+    if (!all || !all.length || !curr.length) return [];
+    const startIdx = all.findIndex(r => r.date === curr[0].date);
+    if (startIdx <= 0) return [];
+    return all.slice(Math.max(0, startIdx - curr.length), startIdx);
+  }
+
+  // ── Delta badge HTML ──
+  function deltaBadge(curr, prev) {
+    if (!prev || prev === 0) return '<div class="kpi-delta neu">— no prev data</div>';
+    const pct  = (curr - prev) / prev * 100;
+    const sign = pct >= 0 ? '+' : '';
+    const cls  = pct >= 0 ? 'pos' : 'neg';
+    return `<div class="kpi-delta ${cls}">${sign}${pct.toFixed(1)}% vs prev period</div>`;
+  }
+
+  // ── KPI cards — aggregate the full selected range + delta vs prev period ──
   function sum(rows, field) { return rows.reduce((s, r) => s + (r[field] || 0), 0); }
   function safeDiv(a, b) { return b > 0 ? a / b : 0; }
 
   function renderKpi(tab, gran) {
     const rows = getRows(tab, gran);
     if (!rows || !rows.length) return;
-    const el = document.getElementById('kpi-' + tab);
+    const prev = getPrevRows(tab, gran);
+    const el   = document.getElementById('kpi-' + tab);
 
     if (tab === 'platform') {
-      const totalPmt  = sum(rows, 'total_payments');
-      const totalRev  = sum(rows, 'total_revenue');
-      const webPmt    = sum(rows, 'web');
-      const iosPmt    = sum(rows, 'ios');
-      const andPmt    = sum(rows, 'android');
-      const webRev    = sum(rows, 'web_revenue');
-      const iosRev    = sum(rows, 'ios_revenue');
-      const andRev    = sum(rows, 'android_revenue');
+      const totalPmt = sum(rows, 'total_payments');
+      const totalRev = sum(rows, 'total_revenue');
+      const webPmt   = sum(rows, 'web');   const iosPmt = sum(rows, 'ios');   const andPmt = sum(rows, 'android');
+      const webRev   = sum(rows, 'web_revenue'); const iosRev = sum(rows, 'ios_revenue'); const andRev = sum(rows, 'android_revenue');
+      const pTotalPmt = sum(prev, 'total_payments'); const pTotalRev = sum(prev, 'total_revenue');
+      const pWebRev = sum(prev, 'web_revenue'); const pIosRev = sum(prev, 'ios_revenue'); const pAndRev = sum(prev, 'android_revenue');
+      const pWebPmt = sum(prev, 'web');         const pIosPmt = sum(prev, 'ios');         const pAndPmt = sum(prev, 'android');
       el.innerHTML = `
-        <div class="kpi-card"><div class="kpi-label">Total Payments</div><div class="kpi-value">${fmtNum(totalPmt)}</div></div>
-        <div class="kpi-card"><div class="kpi-label">Total Revenue</div><div class="kpi-value">${fmtRev(totalRev)}</div></div>
-        <div class="kpi-card"><div class="kpi-label">Web ARPU</div><div class="kpi-value">${fmtRev(safeDiv(webRev, webPmt))}</div></div>
-        <div class="kpi-card"><div class="kpi-label">iOS ARPU</div><div class="kpi-value">${fmtRev(safeDiv(iosRev, iosPmt))}</div></div>
-        <div class="kpi-card"><div class="kpi-label">Android ARPU</div><div class="kpi-value">${fmtRev(safeDiv(andRev, andPmt))}</div></div>
+        <div class="kpi-card"><div class="kpi-label">Total Payments</div><div class="kpi-value">${fmtNum(totalPmt)}</div>${deltaBadge(totalPmt, pTotalPmt)}</div>
+        <div class="kpi-card"><div class="kpi-label">Total Revenue</div><div class="kpi-value">${fmtRev(totalRev)}</div>${deltaBadge(totalRev, pTotalRev)}</div>
+        <div class="kpi-card"><div class="kpi-label">Web ARPU</div><div class="kpi-value">${fmtRev(safeDiv(webRev, webPmt))}</div>${deltaBadge(safeDiv(webRev, webPmt), safeDiv(pWebRev, pWebPmt))}</div>
+        <div class="kpi-card"><div class="kpi-label">iOS ARPU</div><div class="kpi-value">${fmtRev(safeDiv(iosRev, iosPmt))}</div>${deltaBadge(safeDiv(iosRev, iosPmt), safeDiv(pIosRev, pIosPmt))}</div>
+        <div class="kpi-card"><div class="kpi-label">Android ARPU</div><div class="kpi-value">${fmtRev(safeDiv(andRev, andPmt))}</div>${deltaBadge(safeDiv(andRev, andPmt), safeDiv(pAndRev, pAndPmt))}</div>
       `;
     } else {
-      const totalPmt    = sum(rows, 'total_payments');
-      const totalRev    = sum(rows, 'total_revenue');
-      const repeatPmt   = sum(rows, 'repeat_payments');
-      const arpu        = safeDiv(totalRev, totalPmt);
-      const repeatPct   = safeDiv(repeatPmt * 100, totalPmt);
+      const totalPmt  = sum(rows, 'total_payments');
+      const totalRev  = sum(rows, 'total_revenue');
+      const repeatPmt = sum(rows, 'repeat_payments');
+      const arpu      = safeDiv(totalRev, totalPmt);
+      const repeatPct = safeDiv(repeatPmt * 100, totalPmt);
+      const pTotalPmt  = sum(prev, 'total_payments');
+      const pTotalRev  = sum(prev, 'total_revenue');
+      const pRepeatPmt = sum(prev, 'repeat_payments');
+      const pArpu      = safeDiv(pTotalRev, pTotalPmt);
+      const pRepeatPct = safeDiv(pRepeatPmt * 100, pTotalPmt);
       el.innerHTML = `
-        <div class="kpi-card"><div class="kpi-label">Total Payments</div><div class="kpi-value">${fmtNum(totalPmt)}</div></div>
-        <div class="kpi-card"><div class="kpi-label">Total Revenue</div><div class="kpi-value">${fmtRev(totalRev)}</div></div>
-        <div class="kpi-card"><div class="kpi-label">ARPU</div><div class="kpi-value">${fmtRev(arpu)}</div></div>
-        <div class="kpi-card"><div class="kpi-label">Repeat %</div><div class="kpi-value">${fmtPct(repeatPct)}</div></div>
+        <div class="kpi-card"><div class="kpi-label">Total Payments</div><div class="kpi-value">${fmtNum(totalPmt)}</div>${deltaBadge(totalPmt, pTotalPmt)}</div>
+        <div class="kpi-card"><div class="kpi-label">Total Revenue</div><div class="kpi-value">${fmtRev(totalRev)}</div>${deltaBadge(totalRev, pTotalRev)}</div>
+        <div class="kpi-card"><div class="kpi-label">ARPU</div><div class="kpi-value">${fmtRev(arpu)}</div>${deltaBadge(arpu, pArpu)}</div>
+        <div class="kpi-card"><div class="kpi-label">Repeat %</div><div class="kpi-value">${fmtPct(repeatPct)}</div>${deltaBadge(repeatPct, pRepeatPct)}</div>
       `;
     }
   }
@@ -346,9 +375,26 @@
           { label: 'Repeat Revenue', data: rows.map(r => r.repeat_revenue), borderColor: C.repeat, backgroundColor: C.repeat + '28', fill: true, tension: 0.35, pointRadius: 1, pointHoverRadius: 4 },
         ]
       },
-      options: { responsive: true, animation: false, plugins: { legend: LEGEND_OPTS }, scales: { ...SCALE_OPTS, y: { ...SCALE_OPTS.y, stacked: true } } }
+      options: {
+        responsive: true, animation: false,
+        plugins: {
+          legend: LEGEND_OPTS,
+          tooltip: { callbacks: { label: ctx => {
+            const total = ctx.chart.data.datasets.reduce((s, ds) => s + (ds.data[ctx.dataIndex] || 0), 0);
+            const pct = total > 0 ? (ctx.parsed.y / total * 100).toFixed(1) : '0.0';
+            return `${ctx.dataset.label}: ${fmtRev(ctx.parsed.y)} (${pct}%)`;
+          }}}
+        },
+        scales: { ...SCALE_OPTS, y: { ...SCALE_OPTS.y, stacked: true } }
+      }
     });
   }
+
+  const PCT_TOOLTIP = { callbacks: { label: ctx => {
+    const total = ctx.chart.data.datasets.reduce((s, ds) => s + (ds.data[ctx.dataIndex] || 0), 0);
+    const pct = total > 0 ? (ctx.parsed.y / total * 100).toFixed(1) : '0.0';
+    return `${ctx.dataset.label}: ${fmtNum(ctx.parsed.y)} (${pct}%)`;
+  }}};
 
   function renderPaymentsChart(tab, rows) {
     makeChart(`chart-${tab}-payments`, {
@@ -360,9 +406,15 @@
           { label: 'Repeat', data: rows.map(r => r.repeat_payments), backgroundColor: C.repeat + 'cc', stack: 'p' },
         ]
       },
-      options: { responsive: true, animation: false, plugins: { legend: LEGEND_OPTS }, scales: { ...SCALE_OPTS, x: { ...SCALE_OPTS.x, stacked: true }, y: { ...SCALE_OPTS.y, stacked: true } } }
+      options: { responsive: true, animation: false, plugins: { legend: LEGEND_OPTS, tooltip: PCT_TOOLTIP }, scales: { ...SCALE_OPTS, x: { ...SCALE_OPTS.x, stacked: true }, y: { ...SCALE_OPTS.y, stacked: true } } }
     });
   }
+
+  const DONUT_TOOLTIP = { callbacks: { label: ctx => {
+    const total = ctx.dataset.data.reduce((s, v) => s + v, 0);
+    const pct = total > 0 ? (ctx.raw / total * 100).toFixed(1) : '0.0';
+    return `${ctx.label}: ${fmtNum(ctx.raw)} (${pct}%)`;
+  }}};
 
   function renderDonut(tab, rows) {
     const totalNew    = rows.reduce((s, r) => s + r.new_payments, 0);
@@ -373,9 +425,15 @@
         labels: ['New', 'Repeat'],
         datasets: [{ data: [totalNew, totalRepeat], backgroundColor: [C.new, C.repeat], borderWidth: 0, hoverOffset: 4 }]
       },
-      options: { responsive: true, animation: false, plugins: { legend: LEGEND_OPTS } }
+      options: { responsive: true, animation: false, plugins: { legend: LEGEND_OPTS, tooltip: DONUT_TOOLTIP } }
     });
   }
+
+  const REV_TOOLTIP = { callbacks: { label: ctx => {
+    const total = ctx.chart.data.datasets.reduce((s, ds) => s + (ds.data[ctx.dataIndex] || 0), 0);
+    const pct = total > 0 ? (ctx.parsed.y / total * 100).toFixed(1) : '0.0';
+    return `${ctx.dataset.label}: ${fmtRev(ctx.parsed.y)} (${pct}%)`;
+  }}};
 
   function renderPlatformCharts(rows) {
     makeChart('chart-platform-payments', {
@@ -388,7 +446,7 @@
           { label: 'Android', data: rows.map(r => r.android), backgroundColor: C.android + 'cc', stack: 'p' },
         ]
       },
-      options: { responsive: true, animation: false, plugins: { legend: LEGEND_OPTS }, scales: { ...SCALE_OPTS, x: { ...SCALE_OPTS.x, stacked: true }, y: { ...SCALE_OPTS.y, stacked: true } } }
+      options: { responsive: true, animation: false, plugins: { legend: LEGEND_OPTS, tooltip: PCT_TOOLTIP }, scales: { ...SCALE_OPTS, x: { ...SCALE_OPTS.x, stacked: true }, y: { ...SCALE_OPTS.y, stacked: true } } }
     });
 
     makeChart('chart-platform-revenue', {
@@ -401,7 +459,7 @@
           { label: 'Android', data: rows.map(r => r.android_revenue), backgroundColor: C.android + 'cc', stack: 'r' },
         ]
       },
-      options: { responsive: true, animation: false, plugins: { legend: LEGEND_OPTS }, scales: { ...SCALE_OPTS, x: { ...SCALE_OPTS.x, stacked: true }, y: { ...SCALE_OPTS.y, stacked: true } } }
+      options: { responsive: true, animation: false, plugins: { legend: LEGEND_OPTS, tooltip: REV_TOOLTIP }, scales: { ...SCALE_OPTS, x: { ...SCALE_OPTS.x, stacked: true }, y: { ...SCALE_OPTS.y, stacked: true } } }
     });
 
     const web     = rows.reduce((s, r) => s + r.web, 0);
@@ -413,7 +471,7 @@
         labels: ['Web', 'iOS', 'Android'],
         datasets: [{ data: [web, ios, android], backgroundColor: [C.web, C.ios, C.android], borderWidth: 0, hoverOffset: 4 }]
       },
-      options: { responsive: true, animation: false, plugins: { legend: LEGEND_OPTS } }
+      options: { responsive: true, animation: false, plugins: { legend: LEGEND_OPTS, tooltip: DONUT_TOOLTIP } }
     });
   }
 
