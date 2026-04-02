@@ -1,6 +1,6 @@
 import pytest
 import pandas as pd
-from fetch_data import clean_currency, parse_date, clean_df
+from fetch_data import clean_currency, parse_date, clean_df, daily_records, aggregate
 from datetime import date
 
 def test_clean_currency_with_rupee_symbol():
@@ -64,3 +64,59 @@ def test_clean_df_numeric_revenue():
 def test_clean_df_numeric_payments():
     df = clean_df(_make_overall_df(), 'overall')
     assert df.iloc[0]['total_payments'] == 2.0
+
+
+def _overall_df_two_rows():
+    df = pd.DataFrame([
+        {
+            'Date': '01/01/2025',
+            'Total Payments': '4', 'New Payments': '3', 'Repeat Payments': '1',
+            'Total Revenue': '₹8,000', 'New Revenue': '₹6,000', 'Repeat Revenue': '₹2,000',
+            'ARPU': '', 'New ARPU': '', 'Repeat ARPU': '',
+            'New %': '', 'Repeat %': '',
+        },
+        {
+            'Date': '08/01/2025',
+            'Total Payments': '2', 'New Payments': '1', 'Repeat Payments': '1',
+            'Total Revenue': '₹4,000', 'New Revenue': '₹2,000', 'Repeat Revenue': '₹2,000',
+            'ARPU': '', 'New ARPU': '', 'Repeat ARPU': '',
+            'New %': '', 'Repeat %': '',
+        },
+    ])
+    return clean_df(df, 'overall')
+
+def test_daily_records_count():
+    df = _overall_df_two_rows()
+    records = daily_records(df, 'overall')
+    assert len(records) == 2
+
+def test_daily_records_arpu_calculated():
+    df = _overall_df_two_rows()
+    records = daily_records(df, 'overall')
+    # 8000 / 4 = 2000
+    assert records[0]['arpu'] == 2000.0
+
+def test_daily_records_new_pct():
+    df = _overall_df_two_rows()
+    records = daily_records(df, 'overall')
+    # 3/4 * 100 = 75
+    assert records[0]['new_pct'] == 75.0
+
+def test_aggregate_monthly_sums_payments():
+    df = _overall_df_two_rows()
+    # Both rows are in Jan 2025
+    rows = aggregate(df, 'monthly', 'overall')
+    assert len(rows) == 1
+    assert rows[0]['total_payments'] == 6
+
+def test_aggregate_monthly_recalculates_arpu():
+    df = _overall_df_two_rows()
+    rows = aggregate(df, 'monthly', 'overall')
+    # total_revenue=12000, total_payments=6 → arpu=2000
+    assert rows[0]['arpu'] == 2000.0
+
+def test_aggregate_monthly_new_pct():
+    df = _overall_df_two_rows()
+    rows = aggregate(df, 'monthly', 'overall')
+    # new_payments=4, total=6 → 66.67%
+    assert rows[0]['new_pct'] == 66.67
