@@ -207,3 +207,52 @@ def read_sheet(gc, sheet_name):
     headers = raw[0]
     rows = [r for r in raw[1:] if any(c.strip() for c in r)]
     return pd.DataFrame(rows, columns=headers)
+
+
+def git_push(repo_dir):
+    today = date.today().isoformat()
+    subprocess.run(['git', 'add', 'data.json'], cwd=repo_dir, check=True)
+    result = subprocess.run(
+        ['git', 'commit', '-m', f'Update dashboard data {today}'],
+        cwd=repo_dir, capture_output=True, text=True
+    )
+    if result.returncode != 0:
+        if 'nothing to commit' in result.stdout + result.stderr:
+            print("data.json unchanged, nothing to commit")
+            return
+        raise subprocess.CalledProcessError(result.returncode, 'git commit')
+    push_result = subprocess.run(['git', 'push'], cwd=repo_dir, capture_output=True, text=True)
+    if push_result.returncode != 0:
+        print(f"Warning: git push failed (remote may not be configured yet): {push_result.stderr.strip()}")
+    else:
+        print("Pushed to GitHub")
+
+
+def main():
+    gc = pygsheets.authorize(service_file=CREDS_FILE)
+    spreadsheet = gc.open_by_key(SHEET_ID)
+
+    result = {'last_updated': date.today().isoformat()}
+
+    for tab, sheet_name in SHEET_NAMES.items():
+        ws = spreadsheet.worksheet_by_title(sheet_name)
+        raw = ws.get_all_values()
+        headers = raw[0]
+        rows = [r for r in raw[1:] if any(c.strip() for c in r)]
+        df = pd.DataFrame(rows, columns=headers)
+        df = clean_df(df, tab)
+        result[tab] = build_tab_data(df, tab)
+
+    with open(DATA_FILE, 'w') as f:
+        json.dump(result, f, indent=2)
+    print(f"Written {DATA_FILE}")
+
+    try:
+        git_push(REPO_DIR)
+        print("Pushed to GitHub")
+    except Exception as e:
+        print(f"Warning: git operations failed: {e}")
+
+
+if __name__ == '__main__':
+    main()
