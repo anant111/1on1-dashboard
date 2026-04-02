@@ -7,24 +7,31 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: #0f172a; color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; display: flex; height: 100vh; overflow: hidden; }
+    body { background: #0f1117; color: #e2e8f0; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; display: flex; height: 100vh; overflow: hidden; }
 
     /* ── Sidebar ── */
-    #sidebar { width: 210px; min-width: 210px; background: #1e293b; display: flex; flex-direction: column; border-right: 1px solid #334155; }
-    .sidebar-logo { padding: 24px 20px 20px; font-size: 17px; font-weight: 700; color: #3b82f6; border-bottom: 1px solid #334155; letter-spacing: 0.02em; }
-    .nav-section { padding: 12px 0 8px; border-bottom: 1px solid #334155; }
+    #sidebar { width: 216px; min-width: 216px; background: #1a1d27; display: flex; flex-direction: column; border-right: 1px solid #2d3148; }
+    .sidebar-logo { padding: 24px 20px 20px; font-size: 17px; font-weight: 700; color: #6366f1; border-bottom: 1px solid #2d3148; letter-spacing: 0.02em; }
+    .nav-section { padding: 12px 0 8px; border-bottom: 1px solid #2d3148; }
     .nav-label { padding: 0 20px 6px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: #475569; }
-    .nav-item { display: block; padding: 9px 20px; cursor: pointer; font-size: 13.5px; color: #94a3b8; border-left: 3px solid transparent; user-select: none; }
-    .nav-item:hover { color: #f1f5f9; background: #273549; }
-    .nav-item.active { color: #f1f5f9; border-left-color: #3b82f6; background: #273549; }
+    .nav-item { display: block; padding: 9px 20px; cursor: pointer; font-size: 13px; color: #94a3b8; border-left: 3px solid transparent; user-select: none; transition: background 0.15s, color 0.15s; }
+    .nav-item:hover { color: #e2e8f0; background: #1e2130; }
+    .nav-item.active { color: #e2e8f0; border-left-color: #6366f1; background: #1e2130; }
 
     /* ── Granularity ── */
-    .gran-wrap { padding: 16px 20px; border-bottom: 1px solid #334155; }
-    .gran-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: #475569; margin-bottom: 8px; }
-    .gran-btns { display: flex; gap: 6px; }
-    .gran-btn { flex: 1; padding: 5px 0; font-size: 11px; font-weight: 600; background: #334155; border: none; color: #94a3b8; cursor: pointer; border-radius: 5px; }
-    .gran-btn:hover { background: #3d4f68; color: #f1f5f9; }
-    .gran-btn.active { background: #3b82f6; color: #fff; }
+    .gran-wrap { padding: 14px 20px 12px; border-bottom: 1px solid #2d3148; }
+    .ctrl-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: #475569; margin-bottom: 8px; }
+    .gran-btns { display: flex; gap: 5px; }
+    .gran-btn { flex: 1; padding: 5px 0; font-size: 11px; font-weight: 600; background: #23273a; border: 1px solid #2d3148; color: #64748b; cursor: pointer; border-radius: 6px; transition: background 0.15s, color 0.15s; }
+    .gran-btn:hover { background: #2d3148; color: #e2e8f0; }
+    .gran-btn.active { background: #6366f1; border-color: #6366f1; color: #fff; }
+
+    /* ── Date Range ── */
+    .range-wrap { padding: 14px 20px 12px; border-bottom: 1px solid #2d3148; }
+    .range-btns { display: flex; flex-wrap: wrap; gap: 5px; }
+    .range-btn { padding: 4px 9px; font-size: 10.5px; font-weight: 600; background: #23273a; border: 1px solid #2d3148; color: #64748b; cursor: pointer; border-radius: 5px; transition: background 0.15s, color 0.15s; }
+    .range-btn:hover { background: #2d3148; color: #e2e8f0; }
+    .range-btn.active { background: #312e81; border-color: #6366f1; color: #a5b4fc; }
 
     .last-updated { margin-top: auto; padding: 14px 20px; font-size: 11px; color: #475569; }
 
@@ -32,19 +39,19 @@
     #main { flex: 1; overflow-y: auto; padding: 28px 32px; }
     .section { display: none; }
     .section.active { display: block; }
-    .section-title { font-size: 21px; font-weight: 700; margin-bottom: 22px; color: #f1f5f9; }
+    .section-title { font-size: 20px; font-weight: 700; margin-bottom: 20px; color: #e2e8f0; }
 
     /* ── KPI cards ── */
-    .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
+    .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
     .kpi-grid-5 { grid-template-columns: repeat(5, 1fr); }
-    .kpi-card { background: #1e293b; border-radius: 10px; padding: 18px 20px; }
-    .kpi-label { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.08em; color: #64748b; margin-bottom: 6px; }
-    .kpi-value { font-size: 24px; font-weight: 700; color: #f1f5f9; }
+    .kpi-card { background: #1a1d27; border: 1px solid #2d3148; border-radius: 10px; padding: 18px 20px; }
+    .kpi-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: #64748b; margin-bottom: 6px; }
+    .kpi-value { font-size: 24px; font-weight: 700; color: #e2e8f0; }
 
     /* ── Chart layout ── */
-    .charts-row { display: grid; grid-template-columns: 2fr 1fr; gap: 14px; margin-bottom: 14px; }
-    .chart-card { background: #1e293b; border-radius: 10px; padding: 20px; }
-    .chart-title { font-size: 11px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 14px; }
+    .charts-row { display: grid; grid-template-columns: 2fr 1fr; gap: 12px; margin-bottom: 12px; }
+    .chart-card { background: #1a1d27; border: 1px solid #2d3148; border-radius: 10px; padding: 20px; }
+    .chart-title { font-size: 10.5px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 14px; }
   </style>
 </head>
 <body>
@@ -59,12 +66,16 @@
       <div class="nav-item" data-section="platform">Platform</div>
     </div>
     <div class="gran-wrap">
-      <div class="gran-label">Granularity</div>
+      <div class="ctrl-label">Granularity</div>
       <div class="gran-btns">
         <button class="gran-btn active" data-gran="daily">Day</button>
         <button class="gran-btn" data-gran="weekly">Week</button>
         <button class="gran-btn" data-gran="monthly">Month</button>
       </div>
+    </div>
+    <div class="range-wrap">
+      <div class="ctrl-label">Date Range</div>
+      <div class="range-btns" id="range-btns"></div>
     </div>
     <div class="last-updated" id="last-updated">—</div>
   </div>
@@ -130,15 +141,24 @@
   // ── State ──
   let DATA = null;
   let currentGran = 'daily';
+  let currentRange = 15;
   const CHARTS = {};
 
-  // ── Colour palette ──
+  // ── Range options per granularity ──
+  const RANGE_OPTIONS = {
+    daily:   [{ n: 7, label: '7d' }, { n: 15, label: '15d' }, { n: 30, label: '30d' }, { n: 90, label: '90d' }, { n: 0, label: 'All' }],
+    weekly:  [{ n: 4, label: '4w' }, { n: 6, label: '6w' }, { n: 12, label: '12w' }, { n: 0, label: 'All' }],
+    monthly: [{ n: 3, label: '3m' }, { n: 6, label: '6m' }, { n: 12, label: '12m' }, { n: 0, label: 'All' }],
+  };
+  const DEFAULT_RANGES = { daily: 15, weekly: 6, monthly: 3 };
+
+  // ── Colour palette (rail-strategy style) ──
   const C = {
-    new:     '#3b82f6',
-    repeat:  '#8b5cf6',
-    web:     '#3b82f6',
-    ios:     '#10b981',
-    android: '#f59e0b',
+    new:     '#6366f1',
+    repeat:  '#a78bfa',
+    web:     '#7dd3fc',
+    ios:     '#f472b6',
+    android: '#4ade80',
   };
 
   // ── Formatters ──
@@ -150,9 +170,33 @@
   function fmtPct(v) { return (v || 0).toFixed(1) + '%'; }
   function fmtNum(v) { return Math.round(v || 0).toLocaleString('en-IN'); }
 
+  // ── Range selector ──
+  function buildRangeButtons() {
+    const wrap = document.getElementById('range-btns');
+    const options = RANGE_OPTIONS[currentGran];
+    wrap.innerHTML = options.map(({ n, label }) =>
+      `<button class="range-btn${n === currentRange ? ' active' : ''}" data-range="${n}">${label}</button>`
+    ).join('');
+    wrap.querySelectorAll('.range-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        currentRange = parseInt(btn.dataset.range);
+        wrap.querySelectorAll('.range-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const activeTab = document.querySelector('.nav-item.active').dataset.section;
+        if (DATA) renderSection(activeTab, currentGran);
+      });
+    });
+  }
+
+  function getRows(tab, gran) {
+    const rows = DATA[tab][gran];
+    if (!rows || !rows.length) return rows;
+    return currentRange === 0 ? rows : rows.slice(-currentRange);
+  }
+
   // ── KPI cards ──
   function renderKpi(tab, gran) {
-    const rows = DATA[tab][gran];
+    const rows = getRows(tab, gran);
     if (!rows || !rows.length) return;
     const last = rows[rows.length - 1];
     const el = document.getElementById('kpi-' + tab);
@@ -177,8 +221,8 @@
 
   // ── Chart helpers ──
   const SCALE_OPTS = {
-    x: { ticks: { color: '#475569', maxTicksLimit: 10, font: { size: 11 } }, grid: { color: '#273549' } },
-    y: { ticks: { color: '#475569', font: { size: 11 } }, grid: { color: '#334155' } },
+    x: { ticks: { color: '#475569', maxTicksLimit: 10, font: { size: 11 } }, grid: { color: '#1e2130' } },
+    y: { ticks: { color: '#475569', font: { size: 11 } }, grid: { color: '#23273a' } },
   };
   const LEGEND_OPTS = { labels: { color: '#94a3b8', font: { size: 11 }, boxWidth: 12 } };
 
@@ -198,8 +242,8 @@
       data: {
         labels: rows.map(r => r.date),
         datasets: [
-          { label: 'New Revenue', data: rows.map(r => r.new_revenue), borderColor: C.new, backgroundColor: C.new + '26', fill: true, tension: 0.35, pointRadius: 1, pointHoverRadius: 4 },
-          { label: 'Repeat Revenue', data: rows.map(r => r.repeat_revenue), borderColor: C.repeat, backgroundColor: C.repeat + '26', fill: true, tension: 0.35, pointRadius: 1, pointHoverRadius: 4 },
+          { label: 'New Revenue',    data: rows.map(r => r.new_revenue),    borderColor: C.new,    backgroundColor: C.new    + '28', fill: true, tension: 0.35, pointRadius: 1, pointHoverRadius: 4 },
+          { label: 'Repeat Revenue', data: rows.map(r => r.repeat_revenue), borderColor: C.repeat, backgroundColor: C.repeat + '28', fill: true, tension: 0.35, pointRadius: 1, pointHoverRadius: 4 },
         ]
       },
       options: { responsive: true, animation: false, plugins: { legend: LEGEND_OPTS }, scales: { ...SCALE_OPTS, y: { ...SCALE_OPTS.y, stacked: true } } }
@@ -212,8 +256,8 @@
       data: {
         labels: rows.map(r => r.date),
         datasets: [
-          { label: 'New', data: rows.map(r => r.new_payments), backgroundColor: C.new, stack: 'p' },
-          { label: 'Repeat', data: rows.map(r => r.repeat_payments), backgroundColor: C.repeat, stack: 'p' },
+          { label: 'New',    data: rows.map(r => r.new_payments),    backgroundColor: C.new    + 'cc', stack: 'p' },
+          { label: 'Repeat', data: rows.map(r => r.repeat_payments), backgroundColor: C.repeat + 'cc', stack: 'p' },
         ]
       },
       options: { responsive: true, animation: false, plugins: { legend: LEGEND_OPTS }, scales: { ...SCALE_OPTS, x: { ...SCALE_OPTS.x, stacked: true }, y: { ...SCALE_OPTS.y, stacked: true } } }
@@ -227,7 +271,7 @@
       type: 'doughnut',
       data: {
         labels: ['New', 'Repeat'],
-        datasets: [{ data: [totalNew, totalRepeat], backgroundColor: [C.new, C.repeat], borderWidth: 0 }]
+        datasets: [{ data: [totalNew, totalRepeat], backgroundColor: [C.new, C.repeat], borderWidth: 0, hoverOffset: 4 }]
       },
       options: { responsive: true, animation: false, plugins: { legend: LEGEND_OPTS } }
     });
@@ -239,9 +283,9 @@
       data: {
         labels: rows.map(r => r.date),
         datasets: [
-          { label: 'Web', data: rows.map(r => r.web), backgroundColor: C.web, stack: 'p' },
-          { label: 'iOS', data: rows.map(r => r.ios), backgroundColor: C.ios, stack: 'p' },
-          { label: 'Android', data: rows.map(r => r.android), backgroundColor: C.android, stack: 'p' },
+          { label: 'Web',     data: rows.map(r => r.web),     backgroundColor: C.web     + 'cc', stack: 'p' },
+          { label: 'iOS',     data: rows.map(r => r.ios),     backgroundColor: C.ios     + 'cc', stack: 'p' },
+          { label: 'Android', data: rows.map(r => r.android), backgroundColor: C.android + 'cc', stack: 'p' },
         ]
       },
       options: { responsive: true, animation: false, plugins: { legend: LEGEND_OPTS }, scales: { ...SCALE_OPTS, x: { ...SCALE_OPTS.x, stacked: true }, y: { ...SCALE_OPTS.y, stacked: true } } }
@@ -252,9 +296,9 @@
       data: {
         labels: rows.map(r => r.date),
         datasets: [
-          { label: 'Web', data: rows.map(r => r.web_revenue), backgroundColor: C.web, stack: 'r' },
-          { label: 'iOS', data: rows.map(r => r.ios_revenue), backgroundColor: C.ios, stack: 'r' },
-          { label: 'Android', data: rows.map(r => r.android_revenue), backgroundColor: C.android, stack: 'r' },
+          { label: 'Web',     data: rows.map(r => r.web_revenue),     backgroundColor: C.web     + 'cc', stack: 'r' },
+          { label: 'iOS',     data: rows.map(r => r.ios_revenue),     backgroundColor: C.ios     + 'cc', stack: 'r' },
+          { label: 'Android', data: rows.map(r => r.android_revenue), backgroundColor: C.android + 'cc', stack: 'r' },
         ]
       },
       options: { responsive: true, animation: false, plugins: { legend: LEGEND_OPTS }, scales: { ...SCALE_OPTS, x: { ...SCALE_OPTS.x, stacked: true }, y: { ...SCALE_OPTS.y, stacked: true } } }
@@ -267,7 +311,7 @@
       type: 'doughnut',
       data: {
         labels: ['Web', 'iOS', 'Android'],
-        datasets: [{ data: [web, ios, android], backgroundColor: [C.web, C.ios, C.android], borderWidth: 0 }]
+        datasets: [{ data: [web, ios, android], backgroundColor: [C.web, C.ios, C.android], borderWidth: 0, hoverOffset: 4 }]
       },
       options: { responsive: true, animation: false, plugins: { legend: LEGEND_OPTS } }
     });
@@ -275,7 +319,7 @@
 
   // ── Section render ──
   function renderSection(tab, gran) {
-    const rows = DATA[tab][gran];
+    const rows = getRows(tab, gran);
     renderKpi(tab, gran);
     if (tab === 'platform') {
       renderPlatformCharts(rows);
@@ -304,10 +348,15 @@
       document.querySelectorAll('.gran-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       currentGran = btn.dataset.gran;
+      currentRange = DEFAULT_RANGES[currentGran];
+      buildRangeButtons();
       const activeTab = document.querySelector('.nav-item.active').dataset.section;
       if (DATA) renderSection(activeTab, currentGran);
     });
   });
+
+  // ── Init range buttons ──
+  buildRangeButtons();
 
   // ── Load data ──
   fetch('data.json')
