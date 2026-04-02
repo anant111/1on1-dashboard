@@ -249,7 +249,6 @@ def main():
 
     try:
         git_push(REPO_DIR)
-        print("Pushed to GitHub")
     except Exception as e:
         print(f"Warning: git operations failed: {e}")
 
