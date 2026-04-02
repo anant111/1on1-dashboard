@@ -280,27 +280,42 @@
     return currentRange === 0 ? rows : rows.slice(-currentRange);
   }
 
-  // ── KPI cards ──
+  // ── KPI cards — aggregate the full selected range ──
+  function sum(rows, field) { return rows.reduce((s, r) => s + (r[field] || 0), 0); }
+  function safeDiv(a, b) { return b > 0 ? a / b : 0; }
+
   function renderKpi(tab, gran) {
     const rows = getRows(tab, gran);
     if (!rows || !rows.length) return;
-    const last = rows[rows.length - 1];
     const el = document.getElementById('kpi-' + tab);
 
     if (tab === 'platform') {
+      const totalPmt  = sum(rows, 'total_payments');
+      const totalRev  = sum(rows, 'total_revenue');
+      const webPmt    = sum(rows, 'web');
+      const iosPmt    = sum(rows, 'ios');
+      const andPmt    = sum(rows, 'android');
+      const webRev    = sum(rows, 'web_revenue');
+      const iosRev    = sum(rows, 'ios_revenue');
+      const andRev    = sum(rows, 'android_revenue');
       el.innerHTML = `
-        <div class="kpi-card"><div class="kpi-label">Total Payments</div><div class="kpi-value">${fmtNum(last.total_payments)}</div></div>
-        <div class="kpi-card"><div class="kpi-label">Total Revenue</div><div class="kpi-value">${fmtRev(last.total_revenue)}</div></div>
-        <div class="kpi-card"><div class="kpi-label">Web ARPU</div><div class="kpi-value">${fmtRev(last.web_arpu)}</div></div>
-        <div class="kpi-card"><div class="kpi-label">iOS ARPU</div><div class="kpi-value">${fmtRev(last.ios_arpu)}</div></div>
-        <div class="kpi-card"><div class="kpi-label">Android ARPU</div><div class="kpi-value">${fmtRev(last.android_arpu)}</div></div>
+        <div class="kpi-card"><div class="kpi-label">Total Payments</div><div class="kpi-value">${fmtNum(totalPmt)}</div></div>
+        <div class="kpi-card"><div class="kpi-label">Total Revenue</div><div class="kpi-value">${fmtRev(totalRev)}</div></div>
+        <div class="kpi-card"><div class="kpi-label">Web ARPU</div><div class="kpi-value">${fmtRev(safeDiv(webRev, webPmt))}</div></div>
+        <div class="kpi-card"><div class="kpi-label">iOS ARPU</div><div class="kpi-value">${fmtRev(safeDiv(iosRev, iosPmt))}</div></div>
+        <div class="kpi-card"><div class="kpi-label">Android ARPU</div><div class="kpi-value">${fmtRev(safeDiv(andRev, andPmt))}</div></div>
       `;
     } else {
+      const totalPmt    = sum(rows, 'total_payments');
+      const totalRev    = sum(rows, 'total_revenue');
+      const repeatPmt   = sum(rows, 'repeat_payments');
+      const arpu        = safeDiv(totalRev, totalPmt);
+      const repeatPct   = safeDiv(repeatPmt * 100, totalPmt);
       el.innerHTML = `
-        <div class="kpi-card"><div class="kpi-label">Total Payments</div><div class="kpi-value">${fmtNum(last.total_payments)}</div></div>
-        <div class="kpi-card"><div class="kpi-label">Total Revenue</div><div class="kpi-value">${fmtRev(last.total_revenue)}</div></div>
-        <div class="kpi-card"><div class="kpi-label">ARPU</div><div class="kpi-value">${fmtRev(last.arpu)}</div></div>
-        <div class="kpi-card"><div class="kpi-label">Repeat %</div><div class="kpi-value">${fmtPct(last.repeat_pct)}</div></div>
+        <div class="kpi-card"><div class="kpi-label">Total Payments</div><div class="kpi-value">${fmtNum(totalPmt)}</div></div>
+        <div class="kpi-card"><div class="kpi-label">Total Revenue</div><div class="kpi-value">${fmtRev(totalRev)}</div></div>
+        <div class="kpi-card"><div class="kpi-label">ARPU</div><div class="kpi-value">${fmtRev(arpu)}</div></div>
+        <div class="kpi-card"><div class="kpi-label">Repeat %</div><div class="kpi-value">${fmtPct(repeatPct)}</div></div>
       `;
     }
   }
